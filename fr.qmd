@@ -1,0 +1,1117 @@
+---
+title: "`r params$title`"
+format:
+  html:
+    # To use instead of self-contained that has been deprecated
+    # Using custom page layout (via 'style.css')
+    # Open link in a new window by default
+    # Display footnotes in pop-up window when hovering on it
+    toc: false
+    css: ["style.css"]
+    mainfont: Theinhardt
+    fontsize: "16px"
+    embed-resources: true
+    page-layout: custom
+    link-external-newwindow: true
+    footnotes-hover: true
+params:
+  title: ""
+  publication_date: ""
+  lang: "fr"
+  doi: ""
+  github_url: ""
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r general-setup, include=FALSE}
+## This file contains the ENGLISH version of the data story
+
+# Set general chunk options
+knitr::opts_chunk$set(
+  echo = FALSE, fig.showtext = TRUE, fig.retina = 3,
+  fig.align = "center", warning = FALSE, message = FALSE
+)
+
+# Install snf.datastory package if not available, otherwise load it
+if (!require("snf.datastory")) {
+  if (!require("devtools")) {
+    install.packages("devtools")
+    library(devtools)
+  }
+  install_github("snsf-data/snf.datastory")
+  library(snf.datastory)
+}
+
+# Load packages
+library(tidyverse)
+library(lubridate)
+library(scales)
+library(conflicted)
+library(jsonlite)
+library(here)
+library(glue)
+library(ggiraph)
+library(showtext)
+library(systemfonts)
+
+# Conflict preferences
+conflict_prefer("filter", "dplyr")
+conflict_prefer("get_datastory_theme", "snf.datastory")
+conflict_prefer("get_datastory_scheme", "snf.datastory")
+
+
+# If the Theinhardt font is available, the following lines make possible the use
+# of the font in texts and figures. If not, Arial is used instead.
+is_theinhardt_available <- file.exists(here("fonts", "TheinhardtReg.otf"))
+
+if (is_theinhardt_available) {
+  
+  sysfonts::font_add(
+    family = "Theinhardt",
+    regular = here("fonts", "TheinhardtReg.otf"),
+    bold = here("fonts", "TheinhardtBold.otf"),
+    bolditalic = here("fonts", "TheinhardtBoldIt.otf"),
+    italic = here("fonts", "TheinhardtRegIt.otf"),
+  )
+  
+  # Need to register the font to allow its use by ggiraph when creating SVG
+  # files.
+  if (!font_family_exists("Theinhardt")) {
+    
+    # Register existing/downloaded fonts
+    register_font(
+      name = "Theinhardt",
+      plain = list("fonts/TheinhardtReg.otf", 0),
+      bold = list("fonts/TheinhardtBold.otf", 0),
+      italic = list("fonts/TheinhardtRegIt.otf", 0),
+      bolditalic = list("fonts/TheinhardtBoldIt.otf", 0)
+    )
+  }
+  
+  font <- "Theinhardt"
+  
+} else {
+  
+  font <- "Arial"
+  
+}
+
+# Need if we want to use the registered font in ggiraph plots
+showtext_auto()
+
+# Increase showtext package font resolution
+showtext_opts(dpi = 320)
+
+# Set the locale for date formatting based on 'params$lang' (Windows)
+Sys.setlocale(
+  "LC_TIME",
+  switch(
+    params$lang,
+    en = "English",
+    de = "German",
+    fr = "French"
+  )
+)
+
+# Function that returns the desired language version of a string, given three
+# language strings are provided to the function 
+translate <- function(en_string = "NOT TRANSLATED",
+                      de_string = "NOT TRANSLATED",
+                      fr_string = "NOT TRANSLATED",
+                      lang = "en") {
+  
+  string <-
+    case_when(
+      lang == "en" ~ en_string, 
+      lang == "de" ~ de_string, 
+      lang == "fr" ~ fr_string, 
+      TRUE ~ "NO VALID LANGUAGE SPECIFIED"
+    )
+  
+  return(string)
+  
+}
+
+# Create function to print number with local language-specific format
+print_num <- function(x) snf.datastory::print_num(x, lang = params$lang)
+
+# Knitr hook for local formatting of printed numbers
+knitr::knit_hooks$set(
+  inline = function(x) {
+    if (!is.numeric(x)) {
+      x
+    } else {
+      print_num(x)
+    }
+  }
+)
+
+# Produce an interactive figure with ggiraph based on a ggplot object
+make_ggiraph <- function(x,                    # ggplot object
+                         h = 4,                # height of the svg generated
+                         sw = 2,               # width of the stroke
+                         fcolor = "#f6685e",   # color (fill)
+                         color = NA,           # color
+                         scolor = "#f6685e") { # color of the stroke
+  
+  girafe(
+    ggobj = x,
+    height_svg = h,
+    options = list(
+      opts_toolbar(saveaspng = FALSE),
+      opts_hover(
+        css =
+          glue("fill:{fcolor};color:{color};stroke:{scolor};stroke-width:{sw};")
+      ),
+      opts_tooltip(
+        css = get_ggiraph_tooltip_css(family = "Theinhardt"),
+        opacity = 0.8,
+        delay_mouseover = 0,
+        delay_mouseout = 0
+      )
+    )
+  )
+}
+
+```
+
+```{r print-header-infos}
+#| results: asis
+
+# Add publication date to header
+cat(format(as_datetime(params$publication_date), "%d.%m.%Y"))
+
+```
+
+```{r data-story-specific-setup}
+#| include: false
+
+# Read the file with the different disciplines directly from the repository of
+# the latest data story on Open Access monitoring.
+disciplines <-
+  read_csv2(
+    paste0(
+      "https://raw.githubusercontent.com/snsf-data/",
+      "datastory_new_figures_oa_monitoring_2020/main/data/",
+      "disciplines.csv"
+    )
+  ) |>
+  select(!c(Discipline_De, Discipline_Fr))
+
+# Read data for 2020 directly from the repository of the latest data story on
+# Open Access monitoring.
+dat_2020 <-
+  read_csv(
+    paste0(
+      "https://raw.githubusercontent.com/snsf-data/",
+      "datastory_new_figures_oa_monitoring_2020/main/data/",
+      "publications_2020_dec_2021.csv"
+    )
+  ) |>
+  mutate(
+    oa_status =
+      fct_relevel(
+        recode(oa_status, "closed" = "restricted"),
+        c("gold", "green", "hybrid", "other OA", "restricted")
+      ),
+    # SNSF only considers gold, green and hybrid as OA ("other OA" are mainly
+    # non-peer-reviewed OA records).
+    is_oa = oa_status %in% c("gold", "green", "hybrid")
+  ) |>
+  # Add the translations of the level 1 disciplines
+  left_join(disciplines, by = c("main_discipline_number" = "Number")) |>
+  # Add the translations of the level 2 disciplines
+  left_join(
+    disciplines,
+    by = c("main_discipline_level2" = "Discipline")
+  )
+
+# Read data on Open Access in 2021 from the data folder
+dat_2021 <-
+  read_csv(here("data", "publications_2021_mar_2023.csv")) |>
+  # Filter publications that are books or monograph
+  filter(!str_detect(type, "ook|onograph")) |>
+  mutate(
+    oa_status =
+      fct_relevel(
+        recode(oa_status, "closed" = "restricted"),
+        c("gold", "green", "hybrid", "other OA", "restricted")
+      ),
+    # SNSF only considers gold, green and hybrid as OA ("other OA" are mainly
+    # non-peer-reviewed OA records).
+    is_oa = oa_status %in% c("gold", "green", "hybrid")
+  ) |>
+  # Add the translations of the level 1 disciplines
+  left_join(disciplines, by = c("main_discipline_number" = "Number")) |>
+  # Add the translations of the level 2 disciplines
+  left_join(
+    disciplines,
+    by = c("main_discipline_level2" = "Discipline")
+  )
+
+
+```
+
+```{r story-specific-setup}
+#| include: false
+
+# Calculate the shares of the 5 OA categories in 2020
+snsf_oa_categories_2020 <-
+  dat_2020 |>
+  # Remove unknowns
+  filter(oa_status != "unknown") |>
+  count(oa_status) |>
+  mutate(
+    freq = n / sum(n),
+    data_id = paste0("2020", row_number())
+  )
+
+# Calculate the shares of the 5 OA categories in 2021
+snsf_oa_categories_2021 <-
+  dat_2021 |>
+  # Remove unknowns
+  filter(oa_status != "unknown") |>
+  count(oa_status) |>
+  mutate(
+    freq = n / sum(n),
+    data_id = paste0("2021", row_number())
+  )
+
+# Calculate the share of OA in SNSF publications in 2021 and 2020
+snsf_oa_share <-
+  snsf_oa_categories_2021 |>
+  filter(oa_status %in% c("gold", "green", "hybrid")) |>
+  summarise(
+    tot_n_2021 = sum(n),
+    tot_perc_2021 = 100 * sum(freq)
+  ) |>
+  add_column(
+    snsf_oa_categories_2020 |>
+      filter(oa_status %in% c("gold", "green", "hybrid")) |>
+      summarise(
+        tot_n_2020 = sum(n),
+        tot_perc_2020 = 100 * sum(freq)
+      )
+  ) |>
+  mutate(
+    diff_21_20 = abs(tot_perc_2021 - tot_perc_2020)
+  )
+
+# Calculate the share of "green" OA in SNSF publications in 2021 and 2020
+green_share <-
+  snsf_oa_categories_2021 |>
+  filter(oa_status == "green") |>
+  summarise(
+    tot_n_2021 = sum(n),
+    tot_perc_2021 = 100 * sum(freq)
+  ) |>
+  add_column(
+    snsf_oa_categories_2020 |>
+      filter(oa_status == "green") |>
+      summarise(
+        tot_n_2020 = sum(n),
+        tot_perc_2020 = 100 * sum(freq)
+      )
+  ) |>
+  mutate(
+    diff_21_20 = abs(tot_perc_2021 - tot_perc_2020)
+  )
+
+# Calculate the share of "hybrid" OA in SNSF publications in 2021 and 2020
+hybrid_share <-
+  snsf_oa_categories_2021 |>
+  filter(oa_status == "hybrid") |>
+  summarise(
+    tot_n_2021 = sum(n),
+    tot_perc_2021 = 100 * sum(freq)
+  ) |>
+  add_column(
+    snsf_oa_categories_2020 |>
+      filter(oa_status == "hybrid") |>
+      summarise(
+        tot_n_2020 = sum(n),
+        tot_perc_2020 = 100 * sum(freq)
+      )
+  ) |>
+  mutate(
+    diff_21_20 = abs(tot_perc_2021 - tot_perc_2020)
+  )
+
+# Calculate the share of "other" OA in SNSF publications in 2021 and 2020
+other_oa_share <-
+  snsf_oa_categories_2021 |>
+  filter(oa_status == "other OA") |>
+  summarise(
+    tot_n_2021 = sum(n),
+    tot_perc_2021 = 100 * sum(freq)
+  ) |>
+  add_column(
+    snsf_oa_categories_2020 |>
+      filter(oa_status == "other OA") |>
+      summarise(
+        tot_n_2020 = sum(n),
+        tot_perc_2020 = 100 * sum(freq)
+      )
+  ) |>
+  mutate(
+    diff_21_20 = abs(tot_perc_2021 - tot_perc_2020)
+  )
+
+# Calculate the share of "closed" OA in SNSF publications in 2021 and 2020
+closed_share <-
+  snsf_oa_categories_2021 |>
+  filter(oa_status == "restricted") |>
+  summarise(
+    tot_n_2021 = sum(n),
+    tot_perc_2021 = 100 * sum(freq)
+  ) |>
+  add_column(
+    snsf_oa_categories_2020 |>
+      filter(oa_status == "restricted") |>
+      summarise(
+        tot_n_2020 = sum(n),
+        tot_perc_2020 = 100 * sum(freq)
+      )
+  ) |>
+  mutate(
+    diff_21_20 = abs(tot_perc_2021 - tot_perc_2020)
+  )
+
+# Define vector with the OA category colors used in the plots
+oa_colors <-
+  c(
+    "gold" = "#406AF5",
+    "green" = "#90AAFF",
+    "hybrid" = "#CCD8FF",
+    "other OA" = "#AFAFAF",
+    "restricted" = "#4F4F4F"
+  )
+
+# Calculate number and share of licences
+license_categories <-
+  dat_2021 |>
+    # Remove unknowns
+  filter(oa_status != "unknown") |>
+  mutate(
+    up_license = case_when(
+      str_detect(up_license, "cc") ~ up_license,
+      up_license %in% c("NULL", NA) ~ "unknown",
+      TRUE ~ "other"
+    )
+  ) |>
+  count(up_license) |>
+  mutate(
+    freq = n / sum(n),
+    up_license =
+      if_else(
+        str_starts(up_license, "cc"), str_to_upper(up_license), up_license
+      )
+  )
+
+# Extract some numbers to use in the text
+# Extract some numbers to use in the text
+license_cc_by <-
+  license_categories |>
+  filter(up_license == "CC-BY") |>
+  pull(freq) * 100
+
+license_cc_by_nc_nd <-
+  license_categories |>
+  filter(up_license == "CC-BY-NC-ND") |>
+  pull(freq) * 100
+
+license_unknown <-
+  license_categories |>
+  filter(up_license == "unknown") |>
+  pull(freq) * 100
+
+```
+
+**Nous avons évalué `r sum(snsf_oa_categories_2021$n)` publications issues de la recherche financée par le FNS en 2021. Parmi celles-ci, `r round(snsf_oa_share$tot_perc_2021, 0)`% sont disponibles en Open Access (OA), représentant une augmentation sans précédent par rapport à 2020.**
+
+Quelle que soit la version, la part des publications qui ne sont pas librement accessibles a chuté de `r round(closed_share$tot_perc_2020, 0)`% à `r round(closed_share$tot_perc_2021, 0)`% en 2021. On observe de fait une progression pour les trois voies d’accès à l’OA (voir l’encadré « *Qu’est-ce que le libre accès ?* »), la « voie hybride » représentant désormais la part la plus importante (`r round(hybrid_share$tot_perc_2021, 0)`%). En 2021, les [accords de lecture et de publication](https://www.swissuniversities.ch/fr/themes/digitalisation/open-access/negociations-avec-les-editeurs) négociés par swissuniversities avec les principaux éditeurs ont ainsi déployé tous leurs effets. La « voie dorée » continue de progresser au même rythme que celui observé dans l’[analyse de l’année dernière](https://data.snf.ch/stories/publications-en-libre-acces-augmentation-de-8-points-2020-fr.html). La « voie verte » a également gagné en importance et représente désormais `r round(green_share$tot_perc_2021, 0)`% des publications. Cette voie consiste à rendre une publication librement accessible par l’intermédiaire du dépôt d’une publication dans une base de données. Cette évolution apparaît pertinente dans la mesure où elle indique un meilleur respect de la politique Open Access poursuivie par le FNS et de nombreuses institutions.
+
+
+```{r create-1}
+
+# Create ggplot plot
+p_overall_oa_shares <-
+  snsf_oa_categories_2021 |>
+  ggplot() +
+  aes(
+    x = fct_rev(oa_status),
+    y = freq,
+    fill = oa_status,
+    data_id = data_id,
+    tooltip =
+      paste0(
+        translate("OA category: ", "OA-Kategorie: ", "Catégorie OA : ", params$lang),
+        case_when(
+          oa_status == "gold" ~
+            translate("gold", "Gold", "voie dorée", params$lang),
+          oa_status == "green" ~
+            translate("green", "Grün", "voie verte", params$lang),
+          oa_status == "hybrid" ~
+            translate("hybrid", "Hybrid", "voie hybride", params$lang),
+          oa_status == "other OA" ~
+            translate("other OA", "Anderer OA", "autres voies OA", params$lang),
+          oa_status == "restricted" ~
+            translate("restricted", "Eingeschränkt", "accès restreint", params$lang)
+        ),
+        "<br>",
+        translate(
+          "Publication percentage: ", "Publikationen in Prozent: ", "Pourcentage de publications : ", params$lang
+        ),
+        print_num(round(freq * 100, 1)), "%<br>",
+        translate(
+          "Number of publications in 2021: ",
+          "Anzahl Publikationen 2021: ",
+          "Nombre de publications en 2021 : ",
+          params$lang
+        ),
+        print_num(n)
+      )
+  ) +
+  geom_col_interactive(width = 0.8) +
+  geom_text_interactive(
+    aes(
+      y = (freq - 0.02),
+      label = paste0(round(freq * 100), "%")
+    ),
+    size = 3,
+    hjust = 0.5,
+    family = "Theinhardt",
+    color = "white",
+    fontface = "bold"
+  ) +
+  geom_point_interactive(
+    data = snsf_oa_categories_2020,
+    aes(
+      tooltip =
+        paste0(
+          translate("OA category: ", "OA-Kategorie: ", "Catégorie OA : ", params$lang),
+          case_when(
+            oa_status == "gold" ~
+              translate("gold", "Gold", "voie dorée", params$lang),
+            oa_status == "green" ~
+              translate("green", "Grün", "voie verte", params$lang),
+            oa_status == "hybrid" ~
+              translate("hybrid", "Hybrid", "voie hybride", params$lang),
+            oa_status == "other OA" ~
+              translate("other OA", "Anderer OA", "autres voies OA", params$lang),
+            oa_status == "restricted" ~
+              translate("restricted", "Eingeschränkt", "accès restreint", params$lang)
+          ),
+          "<br>",
+          translate(
+            "Publication percentage: ", "Publikationen in Prozent: ", "Pourcentage de publications : ", params$lang
+          ),
+          print_num(round(freq * 100, 1)), "%<br>",
+          translate(
+            "Number of publications in 2020: ",
+            "Anzahl Publikationen 2020: ",
+            "Nombre de publications en 2020 : ",
+            params$lang
+          ),
+          print_num(n)
+        ),
+      fill = "",
+      color = "#B2B1A7",
+      data_id = data_id
+    ),
+    size = 2, stroke = 1, color = "transparent",
+    shape = 21
+  ) +
+  scale_y_continuous(labels = percent_format(accuracy = 1)) +
+  scale_x_discrete(
+    labels = \(x) case_when(
+      x == "gold" ~ translate("Gold", "Gold", "Voie dorée", params$lang),
+      x == "green" ~ translate("Green", "Grün", "Voie verte", params$lang),
+      x == "hybrid" ~
+        translate("Hybrid", "Hybrid", "Voie hybride", params$lang),
+      x == "other OA" ~
+        translate("Other OA", "Anderer OA", "Autres voies OA", params$lang),
+      x == "restricted" ~
+        translate("Restricted", "Eingeschränkt", "Accès restreint", params$lang)
+    )
+  ) +
+  scale_fill_manual(values = oa_colors, guide = "none") +
+  coord_flip() +
+  get_datastory_theme(family = "Theinhardt")
+
+```
+
+::: {.hide-mobile .hide-tablet}
+::: plot-box
+::: plot-title
+Part OA des publications du FNS parues en 2021
+:::
+```{r desktop-plot-1}
+#| out-width: "100%"
+#| fig-height: 3.5
+
+# Create ggiraph object
+make_ggiraph(p_overall_oa_shares, h = 2.5, sw = NA, scolor = NA)
+
+```
+
+::: caption
+Publications communiquées au FNS comme résultant de son financement et publiées en 2021 (barres), comparées aux publications de 2020 (points). Les données peuvent être téléchargées via les liens suivants : [publications 2021](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2021/main/data/publications_2021_mar_2023.csv) et [publications 2020](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2020/main/data/publications_2020_dec_2021.csv). Les `r nrow(dat_2021) - sum(snsf_oa_categories_2021$n)` publications dont le statut OA n'a pas pu être déterminé ne sont pas incluses dans cette analyse.
+:::
+:::
+:::
+
+::: {.hide-desktop}
+::: plot-box
+::: plot-title
+Part OA des publications du FNS parues en 2021
+:::
+```{r mobile-plot-1}
+#| out-width: "100%"
+#| fig-height: 3.5
+
+# Create ggiraph object
+p_overall_oa_shares +
+  theme(
+    axis.text.x = element_text(size = 10),
+    axis.text.y = element_text(size = 10)
+  )
+
+```
+
+::: caption
+Publications communiquées au FNS comme résultant de son financement et publiées en 2021 (barres), comparées aux publications de 2020 (points). Les données peuvent être téléchargées via les liens suivants : [publications 2021](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2021/main/data/publications_2021_mar_2023.csv) et [publications 2020](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2020/main/data/publications_2020_dec_2021.csv). Les `r nrow(dat_2021) - sum(snsf_oa_categories_2021$n)` publications dont le statut OA n'a pas pu être déterminé ne sont pas inclues dans notre analyse.
+:::
+:::
+:::
+
+::: info-box
+### Qu’est-ce que le libre accès ?
+
+L’Open Access (OA) consiste à rendre des publications scientifiques gratuitement accessibles à toutes les parties intéressées à travers le monde. Les résultats de la recherche financée par le FNS doivent être librement accessibles. Nous prenons en charge les frais y afférents. Les scientifiques peuvent s’acquitter de leurs obligations en matière d’OA en empruntant la voie dorée, la voie verte et la voie hybride.
+
+-   **Voie dorée** : immédiatement disponible en libre accès dans une revue OA, sous la forme d’un livre OA ou d’un chapitre de livre OA, généralement moyennant le paiement de frais de publication.
+-   **Voie verte** : disponible en libre accès en tant que publication secondaire dans une base de données (« repository ») institutionnelle ou spécifique à une discipline.
+-   **Voie hybride** : disponible en libre accès dans une revue à abonnement après paiement de frais, ou libre accès couvert par des accords institutionnels de type « Read & Publish ».
+-   **Autres voies OA** : une version est librement accessible, mais elle ne reflète pas la dernière révision (p. ex. prépublication) ou ne peut pas être clairement attribuée à une voie OA (p. ex. données manquantes).
+-   **Accès restreint** : aucune version n’est disponible en libre accès.
+:::
+
+### Des améliorations importantes et surprenantes
+
+Après avoir suivi l’évolution de l’OA sur cinq périodes consécutives remontant jusqu’à 2013, nous pouvons en conclure que le libre accès s’inscrit dans la pérennité. Bien que sa part ait presque doublé dans l’intervalle, le FNS n’a pas encore atteint les objectifs qu’il s’est fixés pour toutes les publications issues de la recherche qu’il soutient. Il s’en rapproche néanmoins rapidement grâce à l’augmentation sans précédent de `r round(snsf_oa_share$diff_21_20, 0)` points de pourcentage enregistrée par rapport à 2020.
+
+En 2021, on observe une baisse étonnamment importante dans la catégorie « Autres voies OA », qui passe à `r round(other_oa_share$tot_perc_2021, 0)`%. Cette catégorie comprend les publications en libre accès ne reflétant pas la dernière révision, telles que les prépublications. Ou alors celles ne pouvant pas être classées dans une catégorie plus spécifique faute de données, par exemple lorsqu’aucune information sur la version d’une publication, ou l’endroit où elle est hébergée, n’est disponible. Cette catégorie devrait se réduire au fil du temps, au fur et à mesure que les infrastructures de publication, les services de fouille de données (*data mining*) et les métadonnées en général s’amélioreront. La diminution de `r round(other_oa_share$diff_21_20, 0)` points de pourcentage intervenue entre 2020 et 2021 demeure cependant remarquable.
+
+
+```{r create-plot-2}
+#| out-width: "100%"
+#| fig-height: 3.5
+
+# Data of OA monitorings since 2013
+former_monitorings <-
+  tibble(
+    period = c("2013-2015", "2014-2018", "2018-2019"),
+    `SNSF OA (gold, green, hybrid)` = c(39, 48, 55),
+    restricted = c(44, 33, 23),
+    `other OA` = c(17, 19, 22)
+  ) |>
+  add_row(
+    period = "2020",
+    `SNSF OA (gold, green, hybrid)` =
+      snsf_oa_categories_2020 |>
+      filter(!str_detect(oa_status, "^other|^rest")) |>
+      summarise(pct = round(sum(freq) * 100)) |>
+      pull(pct),
+    restricted = snsf_oa_categories_2020 |>
+      filter(str_detect(oa_status, "^rest")) |>
+      summarise(pct = round(freq * 100)) |>
+      pull(pct),
+    `other OA` = snsf_oa_categories_2020 |>
+      filter(str_detect(oa_status, "^other")) |>
+      summarise(pct = round(freq * 100)) |>
+      pull(pct)
+  ) |>
+  add_row(
+    period = "2021",
+    `SNSF OA (gold, green, hybrid)` =
+      snsf_oa_categories_2021 |>
+      filter(!str_detect(oa_status, "^other|^rest")) |>
+      summarise(pct = round(sum(freq) * 100)) |>
+      pull(pct),
+    restricted = snsf_oa_categories_2021 |>
+      filter(str_detect(oa_status, "^rest")) |>
+      summarise(pct = round(freq * 100)) |>
+      pull(pct),
+    `other OA` = snsf_oa_categories_2021 |>
+      filter(str_detect(oa_status, "^other")) |>
+      summarise(pct = round(freq * 100)) |>
+      pull(pct)
+  ) |>
+  pivot_longer(cols = -period, names_to = "category")
+
+all_periods_palette_fun <- colorRampPalette(c("#A8DEF8", "#0C293C"))
+
+# Create the former monitorings plot
+p_former_monitorings <-
+  former_monitorings |>
+  # Ordering and labels
+  mutate(
+    category =
+      fct_relevel(
+        category,
+        c("SNSF OA (gold, green, hybrid)", "other OA", "restricted")
+      ),
+    data_id = row_number()
+  ) |>
+  ggplot() +
+  aes(
+    x = category,
+    y = value,
+    fill = period,
+    tooltip = paste0(period, ", ", value, "% ", category),
+    data_id = data_id
+  ) +
+  # Hack: Add a geom_col under the interactive one, only to be able to provide
+  # correct looking legend items (round although bar chart),
+  # geom_col_interactive does not take the argument 'key_glyph'
+  geom_col(
+    position = position_dodge(width = 0.8),
+    width = 0.1,
+    # Draw point instead of square symbol
+    key_glyph = draw_key_dotplot
+  ) +
+  geom_col_interactive(
+    position = position_dodge(width = 0.8),
+    width = 0.8,
+    color = "white",
+    show.legend = FALSE
+  ) +
+  geom_text_interactive(
+    aes(label = paste0(value, "%"), y = (value - 6)),
+    hjust = 0.5,
+    color = "white",
+    fontface = "bold",
+    family = "Theinhardt",
+    position = position_dodge(width = 0.8),
+    size = 3
+  ) +
+  scale_y_continuous(
+    labels = percent_format(accuracy = 1, scale = 1),
+    limits = c(0, 80), breaks = seq(0, 80, 10)
+  ) +
+  scale_x_discrete(
+    labels = \(x) case_when(
+      x == "SNSF OA (gold, green, hybrid)" ~
+        translate(
+          "SNSF OA (gold, green, hybrid)",
+          "SNF-OA (Gold, Grün, Hybrid)",
+          "FNS OA (voies dorée, verte,\nhybride)",
+          params$lang
+        ),
+      x == "other OA" ~
+        translate("Other OA", "Anderer OA", "Autres voies OA", params$lang),
+      x == "restricted" ~
+        translate("Restricted", "Eingeschränkt", "Accès restreint", params$lang)
+    )
+  ) +
+  scale_fill_manual(
+    values = all_periods_palette_fun(length(unique(former_monitorings$period)))
+  ) +
+  labs(x = NULL, y = NULL) +
+  get_datastory_theme(text_axis = "x", family = "Theinhardt") +
+  theme(
+    legend.text = element_text(size = 10),
+    axis.text.x = element_text(size = 10)
+  )
+
+```
+
+::: {.hide-mobile .hide-tablet}
+::: plot-box
+::: plot-title
+Comparaison avec les résultats des suivis précédents sur le libre accès
+:::
+```{r desktop-plot-2}
+#| out-width: "100%"
+#| fig-height: 3.5
+
+p_former_monitorings
+
+```
+
+::: caption
+Publications communiquées au FNS comme résultant de son financement pour la période 2013-2021. Les données peuvent être consultées et téléchargées via le [portail de données](https://data.snf.ch/datasets) du FNS. La base de données étant en constante augmentation, les résultats des suivis précédents sur les publications en libre accès constituent des instantanés de la situation observée à la date à laquelle ces suivis ont été effectués.
+:::
+:::
+:::
+
+::: {.hide-desktop}
+::: plot-box
+::: plot-title
+Comparaison avec les résultats des suivis précédents sur le libre accès
+:::
+```{r mobile-plot-2}
+#| out-width: "100%"
+#| fig-height: 3.5
+
+p_former_monitorings
+
+```
+
+::: caption
+Publications communiquées au FNS comme résultant de son financement pour la période 2013-2021. Les données peuvent être consultées et téléchargées via le [portail de données](https://data.snf.ch/datasets) du FNS. La base de données étant en constante augmentation, les résultats des suivis précédents sur les publications en libre accès constituent des instantanés de la situation observée à la date à laquelle ces suivis ont été effectués.
+:::
+:::
+:::
+
+```{r research_area_shares}
+
+# Calculate the share of OA types per research area
+research_area_shares <-
+  dat_2021 |>
+  add_column(monitoring = "2021") |>
+  bind_rows(
+    dat_2020 |>
+      add_column(monitoring = "2020")
+  ) |>
+  filter(
+    oa_status != "unknown",
+    # Remove publications from interdisciplinary grants
+    Discipline != "Interdisciplinary" | is.na(Discipline)
+  ) |>
+  mutate(
+    main_discipline_level1 =
+      case_when(
+        main_discipline_level1 == "Div 1" ~ "SSH",
+        main_discipline_level1 == "Div 2" ~ "MINT",
+        main_discipline_level1 == "Div 3" ~ "LS",
+        main_discipline_level1 == "No SNSF discipline associated" ~
+          "non-assignable",
+        TRUE ~ "Unknown"
+      )
+  ) |>
+  count(main_discipline_level1, oa_status, monitoring) |>
+  group_by(main_discipline_level1, monitoring) |>
+  mutate(pct = n / sum(n)) |>
+  ungroup()
+
+# Extract some variables for the text
+ssh_other <-
+  research_area_shares |>
+  filter(main_discipline_level1 == "SSH",
+         oa_status == "other OA",
+         monitoring == 2020) |>
+  summarise(perc_2020 = 100 * pct) |>
+  add_column(
+    research_area_shares |>
+      filter(main_discipline_level1 == "SSH",
+             oa_status == "other OA",
+             monitoring == 2021) |>
+      summarise(perc_2021 = 100 * pct)
+  )
+
+ssh_hybrid <-
+  research_area_shares |>
+  filter(main_discipline_level1 == "SSH",
+         oa_status == "hybrid",
+         monitoring == 2020) |>
+  summarise(perc_2020 = 100 * pct) |>
+  add_column(
+    research_area_shares |>
+      filter(main_discipline_level1 == "SSH",
+             oa_status == "hybrid",
+             monitoring == 2021) |>
+      summarise(perc_2021 = 100 * pct)
+  )
+
+```
+
+Si l’on examine les changements par domaine de recherche, l’évolution la plus notable concerne les autres voies de publication OA en sciences humaines et sociales (SHS). Celles-ci ne représentent plus que `r round(ssh_other$perc_2021, 0)`% des publications en 2021, contre `r round(ssh_other$perc_2020, 0)`% en 2020. Comprendre en détail cette évolution exigerait des analyses qui dépassent le cadre du présent suivi. Cependant, ce changement soudain et important semble lié aux accords « Read & Publish » négociés par swissuniversities. De nombreuses publications qui n’étaient auparavant disponibles qu’au titre d’autres catégories difficiles à détecter sont désormais publiées sous la classification de libre accès hybride standard, ce qui représente la part la plus importante (`r round(ssh_hybrid$perc_2021, 0)`%) de l’ensemble des publications issues des SHS.
+
+```{r create-plot-3}
+
+main_discipline_order <-
+  translate_research_area(c("SSH", "MINT", "LS"), params$lang, "long")
+
+# Create the level 1 color shares plot
+p_color_share_lvl1 <-
+  research_area_shares |>
+  # Translate research area to respective language version
+  mutate(
+    main_discipline_level1 =
+      translate_research_area(main_discipline_level1, params$lang, "long"),
+    main_discipline_level1 =
+      if_else(
+        main_discipline_level1 == "UNKNOWN",
+        translate(
+          "non-assignable", "nicht zuteilbar", "non attribuable", params$lang
+        ),
+        main_discipline_level1
+      ),
+    main_discipline_level1 =
+      fct_relevel(
+        factor(main_discipline_level1),
+        main_discipline_order
+      ),
+    label =
+      if_else(round(pct * 100) >= 10, paste0(print_num(round(pct * 100)), "%"), NA),
+    data_id = 1:n()
+  ) |>
+  ggplot() +
+  aes(
+    x = monitoring,
+    y = pct,
+    fill = fct_rev(oa_status),
+    data_id = data_id,
+    tooltip =
+      paste0(
+        translate(
+          "Research area: ",
+          "Forschungsbereich: ",
+          "Domain de recherche : ",
+          params$lang
+        ),
+        main_discipline_level1,
+        translate(
+          "<br>OA category: ",
+          "<br>OA-Kategorie: ",
+          "<br>Catégorie OA : ",
+          params$lang
+        ),
+        case_when(
+          oa_status == "gold" ~
+            translate("gold", "Gold", "voie dorée", params$lang),
+          oa_status == "green" ~
+            translate("green", "Grün", "voie verte", params$lang),
+          oa_status == "hybrid" ~
+            translate("hybrid", "Hybrid", "voie hybride", params$lang),
+          oa_status == "other OA" ~
+            translate("other OA", "Anderer OA", "autres voies OA", params$lang),
+          oa_status == "restricted" ~
+            translate("restricted", "Eingeschränkt", "accès restreint", params$lang)
+        ),
+        translate(
+          "<br>Publication percentage: ",
+          "<br>Publikationen in Prozent: ",
+          "<br>Publications en pourcentage : ",
+          params$lang
+        ),
+        print_num(round(pct * 100, 1)), "%",
+        translate(
+          "<br>Number of publications: ",
+          "<br>Anzahl Publikationen: ",
+          "<br>Nombre de publications : ",
+          params$lang
+        ),
+        print_num(n)
+      )
+  ) +
+  # Hack: Add a geom_col under the interactive one, only to be able to provide
+  # correct looking legend items (round although bar chart),
+  geom_col(
+    position = position_dodge(width = 0.5),
+    width = 0.1,
+    # Draw point instead of square symbol
+    key_glyph = draw_key_dotplot
+  ) +
+  geom_col_interactive(
+    color = "white", show.legend = FALSE
+  ) +
+  geom_text_interactive(
+    aes(label = label),
+    position = position_stack(vjust = 0.5),
+    size = 2.5, color = "white", fontface = "bold",
+    family = "Theinhardt",
+    na.rm = TRUE
+  ) +
+  scale_y_continuous(
+    labels = percent_format(accuracy = 1),
+    expand = c(0.03, 0)
+  ) +
+  scale_fill_manual(
+    values = oa_colors,
+    guide = guide_legend(override.aes = list(size = 6), reverse = TRUE),
+    labels = \(x) case_when(
+      x == "gold" ~
+        translate("Gold", "Gold", "Voie dorée", params$lang),
+      x == "green" ~
+        translate("Green", "Grün", "Voie verte", params$lang),
+      x == "hybrid" ~
+        translate("Hybrid", "Hybrid", "Voie hybride", params$lang),
+      x == "other OA" ~
+        translate("Other OA", "Anderer OA", "Autres voies OA", params$lang),
+      x == "restricted" ~
+        translate("Restricted", "Eingeschränkt", "Accès restreint", params$lang)
+    )
+  ) +
+  labs(x = NULL, y = NULL) +
+  expand_limits(y = c(0, 1.05)) +
+  coord_flip(clip = "off") +
+  facet_wrap(~main_discipline_level1) +
+  get_datastory_theme(legend_key_size = c(1, 1), family = "Theinhardt")
+
+```
+
+::: {.hide-mobile .hide-tablet}
+::: plot-box
+::: plot-title
+Catégories de libre accès par domaine de recherche
+:::
+```{r desktop-plot-3}
+#| out-width: "100%"
+#| fig-height: 2.5
+
+make_ggiraph(p_color_share_lvl1, h = 2.5, sw = NA, scolor = NA)
+
+```
+
+::: caption
+Publications communiquées au FNS comme résultant de son financement et publiées en 2021. Les données peuvent être téléchargées via les liens suivants : [publications 2021](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2021/main/data/publications_2021_mar_2023.csv) et [publications 2020](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2020/main/data/publications_2020_dec_2021.csv). Les publications non attribuables sont celles qui ont été extraites des bases de données de [Crossref](https://www.crossref.org/) et [Dimensions](https://app.dimensions.ai/discover/publication), mais qui n’ont pas pu être clairement attribuées à un subside du FNS à partir duquel la discipline aurait pu être déterminée.
+:::
+:::
+:::
+
+::: {.hide-desktop}
+::: plot-box
+::: plot-title
+Catégories de libre accès par domaine de recherche
+:::
+```{r mobile-plot-3}
+#| out-width: "100%"
+#| fig-height: 2.5
+
+p_color_share_lvl1 +
+  theme(
+    legend.text = element_text(size = 10),
+    axis.text.x = element_text(size = 10),
+    axis.text.y = element_text(size = 10)
+  )
+
+```
+
+::: caption
+Publications communiquées au FNS comme résultant de son financement et publiées en 2021. Les données peuvent être téléchargées via les liens suivants : [publications 2021](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2021/main/data/publications_2021_mar_2023.csv) et [publications 2020](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2020/main/data/publications_2020_dec_2021.csv). Les publications non attribuables sont celles qui ont été extraites des bases de données de [Crossref](https://www.crossref.org/) et [Dimensions](https://app.dimensions.ai/discover/publication), mais qui n’ont pas pu être clairement attribuées à un subside du FNS à partir duquel la discipline aurait pu être déterminée.
+:::
+:::
+:::
+
+### Utilisation des publications : licences
+
+Mettre des publications à disposition d’un lectorat intéressé est au cœur de la notion de libre accès. Il en va de même en ce qui concerne le droit de les utiliser, de les exploiter et de créer quelque chose de nouveau tout en attribuant correctement le travail correspondant aux auteur·es originaux. En 2022, le FNS a rejoint la [cOAlition S](https://www.coalition-s.org/) et [révisé sa réglementation en matière d’OA](https://www.snf.ch/fr/33WC4FGNdpfXrqPV/news/libre-acces-immediat-et-sans-restriction-nouvelles-prescriptions-au-1er-janvier-2023). Pour les subsides approuvés dont les requêtes ont été soumises au 1er janvier 2023 ou après cette date, toutes les publications qui en résultent doivent se faire sous licence Creative Commons Attribution ou [CC-BY license](https://creativecommons.org/licenses/by/4.0/deed.fr) (voir l’encadré « *Qu’est-ce qu’une licence Creative Commons ?* »). Cela nécessite de créditer l’auteur·e original tout en permettant l’utilisation la plus large possible.
+
+En 2021, le FNS n’exigeait pas qu’une licence soit utilisée lors de la publication d’articles issus de la recherche encouragée par ses soins. Nous avons tout de même examiné les données pertinentes afin d’évaluer si cette exigence pourrait poser problème à partir de 2023. Même en l’absence d’exigence explicite, `r round(license_cc_by, 0)`% des articles ont été publiés sous licence CC-BY. La licence la plus restrictive (Creative Commons Attribution - Non Commercial - No Derivatives or [CC-BY-NC-ND](https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr)) occupe une lointaine troisième place avec `r round(license_cc_by_nc_nd, 0)`%. Une fois encore, les accords nationaux « Read & Publish » ont joué ici un rôle important, dans la mesure où les licences CC-BY ont été exigées par défaut, ce qui a inévitablement augmenté leur part pour les articles liés à un encouragement du FNS.
+
+```{r create-plot-4}
+
+license_plot <-
+  license_categories |>
+  mutate(
+    up_license = fct_reorder(up_license, freq),
+    label =
+      paste0(
+        ifelse(freq < 0.01, "< 1", as.character(round(freq * 100, 0))),
+        translate("%", "%", "%", params$lang), " (n = ", n, ")"
+      )
+  ) |>
+  ggplot() +
+  aes(
+    x = up_license,
+    y = freq,
+    fill = up_license
+  ) +
+  geom_col(show.legend = FALSE) +
+  geom_text(
+    aes(y = freq + 0.01, label = label),
+    fontface = "plain",
+    size = 2.75,
+    family = "Theinhardt",
+    hjust = 0
+  ) +
+  scale_fill_manual(values = get_datastory_scheme()[9:1]) +
+  scale_y_continuous(
+    labels = scales::percent,
+    breaks = seq(0, .4, .1),
+    limits = c(0, 0.53)) +
+  scale_x_discrete(
+    labels = \(x)
+    case_when(
+      x == "unknown" ~
+        translate("Unknown", "Unbekannt", "Indéterminé", params$lang),
+      x == "other" ~
+        translate("Other", "Andere", "Autre", params$lang),
+      .default = x
+    )
+  ) +
+  coord_flip() +
+  get_datastory_theme(family = "Theinhardt") +
+  theme(
+    axis.text.x = element_text(size = 10),
+    axis.text.y = element_text(size = 10)
+  )
+
+```
+
+::: {.hide-mobile .hide-tablet}
+::: plot-box
+::: plot-title
+Parts des différents types de licences associées aux articles scientifiques en 2021
+:::
+```{r desktop-plot-4}
+#| out-width: "100%"
+#| fig-height: 3.5
+
+license_plot
+
+```
+::: caption
+Publications communiquées au FNS comme résultant de son financement et publiées en 2021. Les données peuvent être téléchargées via le lien suivants : [publications 2021](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2021/main/data/publications_2021_mar_2023.csv)
+:::
+:::
+:::
+
+::: {.hide-desktop}
+::: plot-box
+::: plot-title
+Parts des différents types de licences associées aux articles scientifiques en 2021
+:::
+```{r mobile-plot-4}
+#| out-width: "100%"
+#| fig-height: 3.5
+
+license_plot
+
+```
+::: caption
+Publications communiquées au FNS comme résultant de son financement et publiées en 2021. Les données peuvent être téléchargées via le lien suivants : [publications 2021](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2021/main/data/publications_2021_mar_2023.csv)
+:::
+:::
+:::
+
+En 2021, la licence CC-BY était déjà la plus utilisée pour les articles issus de la recherche financée par le FNS. Il serait par conséquent possible que cela devienne la norme à partir de 2023. Mais il est également à noter que les données relatives aux licences étaient loin d’être exhaustives, puisque `r round(license_unknown, 0)`% des articles ne contenaient pas d’informations à ce sujet. Bien qu’il s’agisse d’un problème mineur au regard du présent suivi, ceci constitue un obstacle important à l’utilisation généralisée des articles scientifiques. L’absence d’informations sur les licences lisibles par machine empêche de recourir légalement aux technologies modernes pour analyser un grand nombre de publications scientifiques, dont font partie les remarquables développements actuels en matière d’« intelligence artificielle ». Compte tenu des progrès rapides réalisés dans le domaine des « autres voies OA », les métadonnées sur les licences devraient également s’améliorer au fil du temps. L’importance de cet aspect apparemment mineur ne doit pas être sous-estimée. En effet, pour bénéficier pleinement du libre accès, il est nécessaire que les parties prenantes soient légalement en mesure d’utiliser de manière optimale et créative les connaissances publiées.
+
+::: info-box
+### Qu’est-ce qu’une licence Creative Commons ?
+
+Les publications en libre accès sont accessibles au public, mais restent bien sûr protégées par le droit d’auteur. En tant qu’auteur·es, les chercheuses et les chercheurs détiennent les droits sur leurs travaux. Ils accordent aux tiers, tels que les éditeurs ou le public, certaines autorisations d’utiliser leur travail créatif en vertu de la législation en vigueur. Creative Commons est une organisation à but non lucratif qui a développé des licences pour simplifier la gestion des droits d’auteur à l’ère numérique. Les six types de licences permettent de mieux comprendre ce que l’on peut faire avec une publication.
+
+Vous trouverez des informations détaillées sur les différentes licences sur le site Internet de [Creative Commons](https://creativecommons.org/licenses/?lang=fr).
+:::
+
+Les données, le texte et le code de ce récit de données sont [disponibles sur Github](`r params$github_url`) et [archivés sur Zenodo](`r params$doi`). <br>DOI: `r str_remove(params$doi, "https://doi.org/")`
+
+```{r prevent-internal-snsf-packages, include=FALSE}
+#| include: false
+
+# Internal SNSF packages must not be used in data stories, as their
+# pre-processing functions are internal and the corporate design differs from
+# the data portal.
+if (any(c("snfverse", "snf.preprocessing", "snf.plot") %in%
+        loadedNamespaces())) {
+  stop(glue(
+    "You must not use internal SNSF packages in data stories.",
+    " Please resort to snf.datastory."
+  ))
+}
+```
