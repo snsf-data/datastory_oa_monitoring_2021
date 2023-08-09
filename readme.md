@@ -4,7 +4,7 @@
 
 [English](https://data.snf.ch/stories/open-access-publications-monitoring-2021-en.html)\
 [German](https://data.snf.ch/stories/open-access-publikationen-monitoring-2021-de.html)\
-[French](https://data.snf.ch/stories/publications-en-libre-acces-monitoring-2021-fr.html)\
+[French](https://data.snf.ch/stories/publications-en-libre-acces-monitoring-2021-fr.html)
 
 Author(s): Tobias Philipp and Simon Gorin
 
