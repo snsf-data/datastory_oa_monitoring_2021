@@ -60,7 +60,6 @@ conflict_prefer("filter", "dplyr")
 conflict_prefer("get_datastory_theme", "snf.datastory")
 conflict_prefer("get_datastory_scheme", "snf.datastory")
 
-
 # If the Theinhardt font is available, the following lines make possible the use
 # of the font in texts and figures. If not, Arial is used instead.
 is_theinhardt_available <- file.exists(here("fonts", "TheinhardtReg.otf"))
@@ -556,7 +555,7 @@ make_ggiraph(p_overall_oa_shares, h = 2.5, sw = NA, scolor = NA)
 ```
 
 ::: caption
-Publications reported to the SNSF as a result of its funding and published in 2021 (bar), compared to publications published in 2020 (point). The data are available for download: [2021 publications](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2021/main/data/publications_2021_mar_2023.csv) and [2020 publications](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2020/main/data/publications_2020_dec_2021.csv). The `r nrow(dat_2021) - sum(snsf_oa_categories_2021$n)` publications for which the OA status could not be determined are not included in this analysis.
+Publications reported to the SNSF as a result of its funding and published in 2021 (bar), compared to publications published in 2020 (point). The data are available for download: [2021 publications](https://raw.githubusercontent.com/snsf-data/datastory_oa_monitoring_2021/main/data/publications_2021_mar_2023.csv) and [2020 publications](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2020/main/data/publications_2020_dec_2021.csv). The `r nrow(dat_2021) - sum(snsf_oa_categories_2021$n)` publications for which the OA status could not be determined are not included in this analysis.
 :::
 :::
 :::
@@ -580,7 +579,7 @@ p_overall_oa_shares +
 ```
 
 ::: caption
-Publications reported to the SNSF as a result of its funding and published in 2021 (bar), compared to publications published in 2020 (point). The data are available for download: [2021 publications](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2021/main/data/publications_2021_mar_2023.csv) and [2020 publications](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2020/main/data/publications_2020_dec_2021.csv). The `r nrow(dat_2021) - sum(snsf_oa_categories_2021$n)` publications for which the OA status could not be determined are not included in our analysis.
+Publications reported to the SNSF as a result of its funding and published in 2021 (bar), compared to publications published in 2020 (point). The data are available for download: [2021 publications](https://raw.githubusercontent.com/snsf-data/datastory_oa_monitoring_2021/main/data/publications_2021_mar_2023.csv) and [2020 publications](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2020/main/data/publications_2020_dec_2021.csv). The `r nrow(dat_2021) - sum(snsf_oa_categories_2021$n)` publications for which the OA status could not be determined are not included in our analysis.
 :::
 :::
 :::
@@ -968,7 +967,7 @@ make_ggiraph(p_color_share_lvl1, h = 2.5, sw = NA, scolor = NA)
 ```
 
 ::: caption
-Publications reported to the SNSF as a result of its funding and published in 2020 and 2021. The data are available for download: [2021 publications](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2021/main/data/publications_2021_mar_2023.csv) and [2020 publications](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2020/main/data/publications_2020_dec_2021.csv). Non-assignable publications are those that have been retrieved from the [Crossref](https://www.crossref.org/) and [Dimensions](https://app.dimensions.ai/discover/publication) databases, but could not clearly be assigned to an SNSF grant from which the discipline could be determined.
+Publications reported to the SNSF as a result of its funding and published in 2020 and 2021. The data are available for download: [2021 publications](https://raw.githubusercontent.com/snsf-data/datastory_oa_monitoring_2021/main/data/publications_2021_mar_2023.csv) and [2020 publications](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2020/main/data/publications_2020_dec_2021.csv). Non-assignable publications are those that have been retrieved from the [Crossref](https://www.crossref.org/) and [Dimensions](https://app.dimensions.ai/discover/publication) databases, but could not clearly be assigned to an SNSF grant from which the discipline could be determined.
 :::
 :::
 :::
@@ -992,7 +991,7 @@ p_color_share_lvl1 +
 ```
 
 ::: caption
-Publications reported to the SNSF as a result of its funding and published in 2020 and 2021. The data are available for download: [2021 publications](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2021/main/data/publications_2021_mar_2023.csv) and [2020 publications](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2020/main/data/publications_2020_dec_2021.csv). Non-assignable publications are those that have been retrieved from the [Crossref](https://www.crossref.org/) and [Dimensions](https://app.dimensions.ai/discover/publication) databases, but could not clearly be assigned to an SNSF grant from which the discipline could be determined.
+Publications reported to the SNSF as a result of its funding and published in 2020 and 2021. The data are available for download: [2021 publications](https://raw.githubusercontent.com/snsf-data/datastory_oa_monitoring_2021/main/data/publications_2021_mar_2023.csv) and [2020 publications](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2020/main/data/publications_2020_dec_2021.csv). Non-assignable publications are those that have been retrieved from the [Crossref](https://www.crossref.org/) and [Dimensions](https://app.dimensions.ai/discover/publication) databases, but could not clearly be assigned to an SNSF grant from which the discipline could be determined.
 :::
 :::
 :::
@@ -1066,7 +1065,7 @@ license_plot
 
 ```
 ::: caption
-Publications reported to the SNSF as a result of its funding and published in 2021. The data are available for [download](ttps://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2021/main/data/publications_2021_mar_2023.csv).
+Publications reported to the SNSF as a result of its funding and published in 2021. The data are available for [download](https://raw.githubusercontent.com/snsf-data/datastory_oa_monitoring_2021/main/data/publications_2021_mar_2023.csv).
 :::
 :::
 :::
@@ -1084,7 +1083,7 @@ license_plot
 
 ```
 ::: caption
-Publications reported to the SNSF as a result of its funding and published in 2021. The data are available for [download](ttps://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2021/main/data/publications_2021_mar_2023.csv).
+Publications reported to the SNSF as a result of its funding and published in 2021. The data are available for [download](https://raw.githubusercontent.com/snsf-data/datastory_oa_monitoring_2021/main/data/publications_2021_mar_2023.csv).
 :::
 :::
 :::

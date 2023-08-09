@@ -557,7 +557,7 @@ make_ggiraph(p_overall_oa_shares, h = 2.5, sw = NA, scolor = NA)
 ```
 
 ::: caption
-Dem SNF als Ergebnis seiner Förderung gemeldete, 2021 veröffentlichte Publikationen (Balken), im Vergleich mit den 2020 veröffentlichten Publikationen (Punkte). Die Zahlen stehen zum Herunterladen bereit: [Publikationen 2021](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2021/main/data/publications_2021_mar_2023.csv). Im Monitoring nicht berücksichtigt sind `r nrow(dat_2021) - sum(snsf_oa_categories_2021$n)` Publikationen mit unbekanntem OA-Status.
+Dem SNF als Ergebnis seiner Förderung gemeldete, 2021 veröffentlichte Publikationen (Balken), im Vergleich mit den 2020 veröffentlichten Publikationen (Punkte). Die Zahlen stehen zum Herunterladen bereit: [Publikationen 2021](https://raw.githubusercontent.com/snsf-data/datastory_oa_monitoring_2021/main/data/publications_2021_mar_2023.csv) und [Publikationen 2020](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2020/main/data/publications_2020_dec_2021.csv). Im Monitoring nicht berücksichtigt sind `r nrow(dat_2021) - sum(snsf_oa_categories_2021$n)` Publikationen mit unbekanntem OA-Status.
 :::
 :::
 :::
@@ -581,7 +581,7 @@ p_overall_oa_shares +
 ```
 
 ::: caption
-Dem SNF als Ergebnis seiner Förderung gemeldete, 2021 veröffentlichte Publikationen (Balken), im Vergleich mit den 2020 veröffentlichten Publikationen (Punkte). Die Zahlen stehen zum Herunterladen bereit: [Publikationen 2021](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2021/main/data/publications_2021_mar_2023.csv). Im Monitoring nicht berücksichtigt sind `r nrow(dat_2021) - sum(snsf_oa_categories_2021$n)` weitere Publikationen mit unbekanntem OA-Status.
+Dem SNF als Ergebnis seiner Förderung gemeldete, 2021 veröffentlichte Publikationen (Balken), im Vergleich mit den 2020 veröffentlichten Publikationen (Punkte). Die Zahlen stehen zum Herunterladen bereit: [Publikationen 2021](https://raw.githubusercontent.com/snsf-data/datastory_oa_monitoring_2021/main/data/publications_2021_mar_2023.csv). Im Monitoring nicht berücksichtigt sind `r nrow(dat_2021) - sum(snsf_oa_categories_2021$n)` weitere Publikationen mit unbekanntem OA-Status.
 :::
 :::
 :::
@@ -968,7 +968,7 @@ make_ggiraph(p_color_share_lvl1, h = 2.5, sw = NA, scolor = NA)
 ```
 
 ::: caption
-Dem SNF als Ergebnis seiner Förderung gemeldete, 2020 und 2021 veröffentlichte Publikationen. Die Zahlen stehen zum Herunterladen bereit: [Publikationen 2021](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2021/main/data/publications_2021_mar_2023.csv) und [Publikationen 2020](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2020/main/data/publications_2020_dec_2021.csv). Nicht zuteilbare Publikationen sind Publikationen, die aus den Datenbanken [Crossref](https://www.crossref.org/) und [Dimensions](https://app.dimensions.ai/discover/publication) bezogen wurden, aber nicht zweifelsfrei einem SNF-Förderbeitrag zugeordnet werden konnten, aus dem sich die Disziplin ableiten liesse.
+Dem SNF als Ergebnis seiner Förderung gemeldete, 2020 und 2021 veröffentlichte Publikationen. Die Zahlen stehen zum Herunterladen bereit: [Publikationen 2021](https://raw.githubusercontent.com/snsf-data/datastory_oa_monitoring_2021/main/data/publications_2021_mar_2023.csv) und [Publikationen 2020](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2020/main/data/publications_2020_dec_2021.csv). Nicht zuteilbare Publikationen sind Publikationen, die aus den Datenbanken [Crossref](https://www.crossref.org/) und [Dimensions](https://app.dimensions.ai/discover/publication) bezogen wurden, aber nicht zweifelsfrei einem SNF-Förderbeitrag zugeordnet werden konnten, aus dem sich die Disziplin ableiten liesse.
 :::
 :::
 :::
@@ -992,7 +992,7 @@ p_color_share_lvl1 +
 ```
 
 ::: caption
-Dem SNF als Ergebnis seiner Förderung gemeldete, 2020 und 2021 veröffentlichte Publikationen. Die Zahlen stehen zum Herunterladen bereit: [Publikationen 2021](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2021/main/data/publications_2021_mar_2023.csv) und [Publikationen 2020](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2020/main/data/publications_2020_dec_2021.csv). Nicht zuteilbare Publikationen sind Publikationen, die aus den Datenbanken [Crossref](https://www.crossref.org/) und [Dimensions](https://app.dimensions.ai/discover/publication) bezogen wurden, aber nicht zweifelsfrei einem SNF-Förderbeitrag zugeordnet werden konnten, aus dem sich die Disziplin ableiten liesse.
+Dem SNF als Ergebnis seiner Förderung gemeldete, 2020 und 2021 veröffentlichte Publikationen. Die Zahlen stehen zum Herunterladen bereit: [Publikationen 2021](https://raw.githubusercontent.com/snsf-data/datastory_oa_monitoring_2021/main/data/publications_2021_mar_2023.csv) und [Publikationen 2020](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2020/main/data/publications_2020_dec_2021.csv). Nicht zuteilbare Publikationen sind Publikationen, die aus den Datenbanken [Crossref](https://www.crossref.org/) und [Dimensions](https://app.dimensions.ai/discover/publication) bezogen wurden, aber nicht zweifelsfrei einem SNF-Förderbeitrag zugeordnet werden konnten, aus dem sich die Disziplin ableiten liesse.
 :::
 :::
 :::
@@ -1066,7 +1066,7 @@ license_plot
 
 ```
 ::: caption
-Dem SNF als Ergebnis seiner Förderung gemeldete, 2021 veröffentlichte Publikationen. Die Zahlen stehen zum Herunterladen bereit: [Publikationen 2021](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2021/main/data/publications_2021_mar_2023.csv).
+Dem SNF als Ergebnis seiner Förderung gemeldete, 2021 veröffentlichte Publikationen. Die Zahlen stehen zum Herunterladen bereit: [Publikationen 2021](https://raw.githubusercontent.com/snsf-data/datastory_oa_monitoring_2021/main/data/publications_2021_mar_2023.csv).
 :::
 :::
 :::

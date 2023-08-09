@@ -60,7 +60,6 @@ conflict_prefer("filter", "dplyr")
 conflict_prefer("get_datastory_theme", "snf.datastory")
 conflict_prefer("get_datastory_scheme", "snf.datastory")
 
-
 # If the Theinhardt font is available, the following lines make possible the use
 # of the font in texts and figures. If not, Arial is used instead.
 is_theinhardt_available <- file.exists(here("fonts", "TheinhardtReg.otf"))
@@ -557,7 +556,7 @@ make_ggiraph(p_overall_oa_shares, h = 2.5, sw = NA, scolor = NA)
 ```
 
 ::: caption
-Publications communiquées au FNS comme résultant de son financement et publiées en 2021 (barres), comparées aux publications de 2020 (points). Les données peuvent être téléchargées via les liens suivants : [publications 2021](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2021/main/data/publications_2021_mar_2023.csv) et [publications 2020](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2020/main/data/publications_2020_dec_2021.csv). Les `r nrow(dat_2021) - sum(snsf_oa_categories_2021$n)` publications dont le statut OA n'a pas pu être déterminé ne sont pas incluses dans cette analyse.
+Publications communiquées au FNS comme résultant de son financement et publiées en 2021 (barres), comparées aux publications de 2020 (points). Les données peuvent être téléchargées via les liens suivants : [publications 2021](https://raw.githubusercontent.com/snsf-data/datastory_oa_monitoring_2021/main/data/publications_2021_mar_2023.csv) et [publications 2020](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2020/main/data/publications_2020_dec_2021.csv). Les `r nrow(dat_2021) - sum(snsf_oa_categories_2021$n)` publications dont le statut OA n'a pas pu être déterminé ne sont pas incluses dans cette analyse.
 :::
 :::
 :::
@@ -581,7 +580,7 @@ p_overall_oa_shares +
 ```
 
 ::: caption
-Publications communiquées au FNS comme résultant de son financement et publiées en 2021 (barres), comparées aux publications de 2020 (points). Les données peuvent être téléchargées via les liens suivants : [publications 2021](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2021/main/data/publications_2021_mar_2023.csv) et [publications 2020](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2020/main/data/publications_2020_dec_2021.csv). Les `r nrow(dat_2021) - sum(snsf_oa_categories_2021$n)` publications dont le statut OA n'a pas pu être déterminé ne sont pas inclues dans notre analyse.
+Publications communiquées au FNS comme résultant de son financement et publiées en 2021 (barres), comparées aux publications de 2020 (points). Les données peuvent être téléchargées via les liens suivants : [publications 2021](https://raw.githubusercontent.com/snsf-data/datastory_oa_monitoring_2021/main/data/publications_2021_mar_2023.csv) et [publications 2020](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2020/main/data/publications_2020_dec_2021.csv). Les `r nrow(dat_2021) - sum(snsf_oa_categories_2021$n)` publications dont le statut OA n'a pas pu être déterminé ne sont pas inclues dans notre analyse.
 :::
 :::
 :::
@@ -968,7 +967,7 @@ make_ggiraph(p_color_share_lvl1, h = 2.5, sw = NA, scolor = NA)
 ```
 
 ::: caption
-Publications communiquées au FNS comme résultant de son financement et publiées en 2021. Les données peuvent être téléchargées via les liens suivants : [publications 2021](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2021/main/data/publications_2021_mar_2023.csv) et [publications 2020](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2020/main/data/publications_2020_dec_2021.csv). Les publications non attribuables sont celles qui ont été extraites des bases de données de [Crossref](https://www.crossref.org/) et [Dimensions](https://app.dimensions.ai/discover/publication), mais qui n’ont pas pu être clairement attribuées à un subside du FNS à partir duquel la discipline aurait pu être déterminée.
+Publications communiquées au FNS comme résultant de son financement et publiées en 2021. Les données peuvent être téléchargées via les liens suivants : [publications 2021](https://raw.githubusercontent.com/snsf-data/datastory_oa_monitoring_2021/main/data/publications_2021_mar_2023.csv) et [publications 2020](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2020/main/data/publications_2020_dec_2021.csv). Les publications non attribuables sont celles qui ont été extraites des bases de données de [Crossref](https://www.crossref.org/) et [Dimensions](https://app.dimensions.ai/discover/publication), mais qui n’ont pas pu être clairement attribuées à un subside du FNS à partir duquel la discipline aurait pu être déterminée.
 :::
 :::
 :::
@@ -992,7 +991,7 @@ p_color_share_lvl1 +
 ```
 
 ::: caption
-Publications communiquées au FNS comme résultant de son financement et publiées en 2021. Les données peuvent être téléchargées via les liens suivants : [publications 2021](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2021/main/data/publications_2021_mar_2023.csv) et [publications 2020](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2020/main/data/publications_2020_dec_2021.csv). Les publications non attribuables sont celles qui ont été extraites des bases de données de [Crossref](https://www.crossref.org/) et [Dimensions](https://app.dimensions.ai/discover/publication), mais qui n’ont pas pu être clairement attribuées à un subside du FNS à partir duquel la discipline aurait pu être déterminée.
+Publications communiquées au FNS comme résultant de son financement et publiées en 2021. Les données peuvent être téléchargées via les liens suivants : [publications 2021](https://raw.githubusercontent.com/snsf-data/datastory_oa_monitoring_2021/main/data/publications_2021_mar_2023.csv) et [publications 2020](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2020/main/data/publications_2020_dec_2021.csv). Les publications non attribuables sont celles qui ont été extraites des bases de données de [Crossref](https://www.crossref.org/) et [Dimensions](https://app.dimensions.ai/discover/publication), mais qui n’ont pas pu être clairement attribuées à un subside du FNS à partir duquel la discipline aurait pu être déterminée.
 :::
 :::
 :::
@@ -1066,7 +1065,7 @@ license_plot
 
 ```
 ::: caption
-Publications communiquées au FNS comme résultant de son financement et publiées en 2021. Les données peuvent être téléchargées via le lien suivants : [publications 2021](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2021/main/data/publications_2021_mar_2023.csv)
+Publications communiquées au FNS comme résultant de son financement et publiées en 2021. Les données peuvent être téléchargées via le lien suivants : [publications 2021](https://raw.githubusercontent.com/snsf-data/datastory_oa_monitoring_2021/main/data/publications_2021_mar_2023.csv)
 :::
 :::
 :::
@@ -1084,7 +1083,7 @@ license_plot
 
 ```
 ::: caption
-Publications communiquées au FNS comme résultant de son financement et publiées en 2021. Les données peuvent être téléchargées via le lien suivants : [publications 2021](https://raw.githubusercontent.com/snsf-data/datastory_new_figures_oa_monitoring_2021/main/data/publications_2021_mar_2023.csv)
+Publications communiquées au FNS comme résultant de son financement et publiées en 2021. Les données peuvent être téléchargées via le lien suivants : [publications 2021](https://raw.githubusercontent.com/snsf-data/datastory_oa_monitoring_2021/main/data/publications_2021_mar_2023.csv)
 :::
 :::
 :::
