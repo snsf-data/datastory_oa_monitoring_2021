@@ -1,6 +1,6 @@
-# Datastory: *2021: strongest improvement in Open Access-share yet*
+# 2021: strongest improvement in Open Access-share yet
 
-*As part of our monitoring, we evaluated 14641 publications resulting from SNSF-funded research published in 2021. Of these, 77% are available in Open Access (OA). An unprecedented increase over the 63% measured for 2020.*
+**As part of our monitoring, we evaluated 14641 publications resulting from SNSF-funded research published in 2021. Of these, 77% are available in Open Access (OA). An unprecedented increase over the 63% measured for 2020.**
 
 [English](https://data.snf.ch/stories/open-access-publications-monitoring-2021-en.html)\
 [German](https://data.snf.ch/stories/open-access-publikationen-monitoring-2021-de.html)\
@@ -10,7 +10,7 @@ Author(s): Tobias Philipp and Simon Gorin
 
 Publication date: *10.08.2023*
 
-# Data description
+### Data description
 
 The data used in this data story are available in the folder data. There is one dataset called `publications_2021_mar_2023.csv`. The data are a combination of:
 
